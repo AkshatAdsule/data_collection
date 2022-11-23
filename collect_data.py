@@ -5,11 +5,9 @@ import adafruit_mpu6050
 from gpiozero import LED, Button
 from RPLCD.i2c import CharLCD
 
-i = 0
-
 def run():
+	i = 0
 	# From wiring diagram
-	global i
 	record_led = LED(9)
 	write_led = LED(8)
 	start_stop_btn = Button(23)
@@ -56,13 +54,13 @@ def run():
 			file.flush()
 
 			if(lcd_btn.value == 1 and not lcd_btn.is_held):
-				i = 100
+				i = 3 # force lcd refresh
 				lcd.clear()
 				lcd_state += 1
 				if (lcd_state > 7):
 					lcd_state = 0
 
-			if(i > 2):
+			if(i > 2): # slow lcd refresh rate
 				lcd.clear()
 				write_lcd(accel, gyro, temp, lcd, lcd_state)
 				i = 0
@@ -71,47 +69,33 @@ def run():
 
 		else:
 			lcd.clear()
-			lcd.write_string('Recording data')
-			lcd.cursor_pos = (1,0)
-			lcd.write_string('OFF')
+			write_lines_to_lcd(lcd, 'Recording data', 'OFF')
 			lcd_state = 0 
 			record_led.off()
 			time.sleep(1)
 
 def write_lcd(accel, gyro, temp, lcd, lcd_state):
 	if(lcd_state == 1):
-		lcd.write_string('Acceleration: X\n')
-		lcd.cursor_pos = (1,0)
-		lcd.write_string(str(round(accel[0], 8)))
+		write_lines_to_lcd(lcd, 'Acceleration: X\n', str(round(accel[0], 8)))
 	elif(lcd_state == 2):
-		lcd.write_string('Acceleration: Y\n')
-		lcd.cursor_pos = (1,0)
-		lcd.write_string(str(round(accel[1], 8)))
+		write_lines_to_lcd(lcd, 'Acceleration: Y\n', str(round(accel[1], 8)))
 	elif(lcd_state == 3):
-		lcd.write_string('Acceleration: Z\n')
-		lcd.cursor_pos = (1,0)
-		lcd.write_string(str(round(accel[2], 8)))
+		write_lines_to_lcd(lcd, 'Acceleration: Z\n', str(round(accel[2], 8)))
 	elif(lcd_state == 4):
-		lcd.write_string('Angular Vel: X\n')
-		lcd.cursor_pos = (1,0)
-		lcd.write_string(str(round(gyro[0], 8)))
+		write_lines_to_lcd(lcd, 'Angular Vel: X\n', str(round(gyro[0], 8)))
 	elif(lcd_state == 5):
-		lcd.write_string('Angular Vel: Y\n')
-		lcd.cursor_pos = (1,0)
-		lcd.write_string(str(round(gyro[1], 8)))
+		write_lines_to_lcd(lcd, 'Angular Vel: Y\n', str(round(gyro[1], 8)))
 	elif(lcd_state == 6):
-		lcd.write_string('Angular Vel: Z\n')
-		lcd.cursor_pos = (1,0)
-		lcd.write_string(str(round(gyro[2], 8)))
+		write_lines_to_lcd(lcd, 'Angular Vel: Z\n', str(round(gyro[2], 8)))
 	elif(lcd_state == 7):
-		lcd.write_string('Temperature\n')
-		lcd.cursor_pos = (1,0)
-		lcd.write_string(str(round(temp, 8)))
+		write_lines_to_lcd(lcd, 'Temperature\n', str(round(temp, 8)))
 	else:
-		lcd.write_string('Recording data')
-		lcd.cursor_pos = (1,0)
-		lcd.write_string('ON')
+		write_lines_to_lcd(lcd, 'Recording data', 'ON')
+
+def write_lines_to_lcd(lcd, line_1, line_2):
+	lcd.write_string(line_1)
+	lcd.cursor_pos = (1,0)
+	lcd.write_string(line_2)
 
 if __name__ == "__main__":
 	run()
-
